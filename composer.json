@@ -1,0 +1,9 @@
+{
+	"require": {
+		"rmccue/requests": ">=1.0",
+		"vlucas/phpdotenv": "dev-master"
+	},
+	"config": {
+		"vendor-dir": "www/vendor"
+	}
+}
