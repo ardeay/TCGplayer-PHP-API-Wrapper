@@ -4,7 +4,7 @@
 
 	Title:		TCGpplayerAPI
 
-	Dependencies: 
+	Dependencies:
   HTTP request package https://github.com/rmccue/Requests/blob/master/docs/README.md
   Dotenv Package
 
@@ -13,36 +13,44 @@
 	namespace PFF;
 	use rmccue\requests;
 	use Dotenv;
-	
-	class TCGplayerAPI {
-		
 
-		const API_BASE_URL 	= "https://api.tcgplayer.com/v1.3.0/";
+	class TCGplayerAPI {
+
+
 		const API_BASE_URL_1_6 	= "https://api.tcgplayer.com/v1.6.0/";
-		private $access_token, $userName, $store_token;
+		public $access_token, $userName, $store_token;
 
 
 		# -------------------------------------------------------------------------------------------------
 		#	Construct
 		#		authorize the user, or creates the user
 		# -------------------------------------------------------------------------------------------------
-		
-		public function __construct($store_token=false){
-      
-			$this->store_token = $store_token;
 
+		public function __construct($store_token=false, $api_base_url="https://api.tcgplayer.com/v1.3.0/"){
+			$this->store_token = $store_token;
+			$this->API_BASE_URL = $api_base_url;
+			$dotenv = Dotenv\Dotenv::create(__DIR__);
+			$dotenv->load();
 		}
 
 
 		public function auth($access_token){
 
-			$endpoint = self::API_BASE_URL."token";
+			$endpoint = $this->API_BASE_URL."token";
 
-			$headers = array(
-				'Accept' => 'application/json' ,
-				'X-Tcg-Access-Token' => $access_token,
-				'Content-Type' => 'application/x-www-form-urlencoded'
-			);
+			if(!$access_token){
+				$headers = array(
+					'Accept' => 'application/json' ,
+					'Content-Type' => 'application/x-www-form-urlencoded'
+				);
+			} else {
+				$headers = array(
+					'Accept' => 'application/json' ,
+					'X-Tcg-Access-Token' => $access_token,
+					'Content-Type' => 'application/x-www-form-urlencoded'
+				);
+			}
+
 			$post_data = array(
 				'grant_type' => 'client_credentials',
 				'client_id' => $_ENV['TCG_CLIENT_ID'],
@@ -65,7 +73,7 @@
 
 
 		}
-		
+
 		public function setAccessToken($token){
 			$this->access_token = $token;
 		}
@@ -74,7 +82,7 @@
 		// catalog/categories
 
 		public function getAllCategories(){
-			$endpoint = self::API_BASE_URL."catalog/categories";
+			$endpoint = $this->API_BASE_URL."catalog/categories";
 
 			$headers = array(
 				'Authorization' => 'bearer '.$this->access_token,
@@ -88,12 +96,12 @@
 
 
 		}
-		
+
 		// this gets all the language of a game type, and hte IDs of a language
 		// product/category/manifest/
 
 		public function getSingleCategoryManifest($category_id=1){
-			$endpoint = self::API_BASE_URL."product/category/manifest/".$category_id;
+			$endpoint = $this->API_BASE_URL."product/category/manifest/".$category_id;
 
 			$headers = array(
 				'Authorization' => 'bearer '.$this->access_token,
@@ -112,7 +120,7 @@
 
 		public function getGroups($offset=0,$limit=100){
 			// function gets listing of groups
-			$endpoint = self::API_BASE_URL_1_6."catalog/groups?limit={$limit}&offset={$offset}";
+			$endpoint = SELF::API_BASE_URL_1_6."catalog/groups?limit={$limit}&offset={$offset}";
 
 			$headers = array(
 				'Authorization' => 'bearer '.$this->access_token,
@@ -126,9 +134,10 @@
 		}
 
 		public function getGroupSkuPrices($group_id){
-			
+
 			// function gets listing of groups
-			$endpoint = self::API_BASE_URL."/product/group/marketprices/{$group_id}";
+			// $endpoint = $this->API_BASE_URL."/product/group/marketprices/{$group_id}";
+			$endpoint = $this->API_BASE_URL."/pricing/group/{$group_id}";
 
 			$headers = array(
 				'Authorization' => 'bearer '.$this->access_token,
@@ -143,7 +152,7 @@
 
 		public function getWholeSet($set_id=1){
 			// get individual group info (cards)
-			$endpoint = self::API_BASE_URL."product/manifest/".$set_id;
+			$endpoint = $this->API_BASE_URL."product/manifest/".$set_id;
 
 			$headers = array(
 				'Authorization' => 'bearer '.$this->access_token,
@@ -158,7 +167,7 @@
 
 		public function getSingleItem($set_id=1, $item_id=1){
 			// get individual group info (cards)
-			$endpoint = self::API_BASE_URL."product/manifest/".$set_id."/".$item_id;
+			$endpoint = $this->API_BASE_URL."product/manifest/".$set_id."/".$item_id;
 
 			$headers = array(
 				'Authorization' => 'bearer '.$this->access_token,
@@ -168,12 +177,12 @@
 			$request = \Requests::get($endpoint, $headers, $options);
 
 			return json_decode($request->body);
-			
+
 		}
 
 		public function getBuylistDataByExpansion($group_id=1){
 			// get individual group info (cards)
-			$endpoint = self::API_BASE_URL."product/group/buylist/".$group_id;
+			$endpoint = $this->API_BASE_URL."product/group/buylist/".$group_id;
 
 			$headers = array(
 				'Authorization' => 'bearer '.$this->access_token,
@@ -191,7 +200,7 @@
 
 		public function getGroupBuylistData($group_id=1){
 			// get individual group info (cards)
-			$endpoint = self::API_BASE_URL."product/group/buylist/".$group_id;
+			$endpoint = $this->API_BASE_URL."product/group/buylist/".$group_id;
 
 			$headers = array(
 				'Authorization' => 'bearer '.$this->access_token,
@@ -209,7 +218,7 @@
 
 		public function getMarketPriceDataByExpansion($group_id=1){
 			// get individual group info (cards)
-			$endpoint = self::API_BASE_URL."product/group/marketprices/".$group_id;
+			$endpoint = $this->API_BASE_URL."product/group/marketprices/".$group_id;
 
 			$headers = array(
 				'Authorization' => 'bearer '.$this->access_token,
@@ -238,7 +247,7 @@
 
 			// get individual group info (cards)
 
-			$endpoint = self::API_BASE_URL."app/authorize/".$hash;
+			$endpoint = $this->API_BASE_URL."app/authorize/".$hash;
 
 			$headers = array();
 			$data = array();
@@ -262,7 +271,7 @@
 		public function getStoreInfo(){
 
 			// get individual group info (cards)
-			$endpoint = self::API_BASE_URL."store/identity";
+			$endpoint = $this->API_BASE_URL."store/identity";
 
 			$headers = $this->getBaseHeaderArrayForStoreRequest();
 			$data = array();
@@ -280,7 +289,7 @@
 
 		public function getProductsByGroupId(int $groupId,int $offset, int $limit){
 
-			$endpoint = self::API_BASE_URL."catalog/products?limit={$limit}&offset={$offset}&getExtendedFields=true&groupId={$groupId}";
+			$endpoint = $this->API_BASE_URL."catalog/products?limit={$limit}&offset={$offset}&getExtendedFields=true&groupId={$groupId}";
 
 			$headers = $this->getBaseHeaderArrayForStoreRequest();
 
@@ -303,7 +312,7 @@
 
 		public function getProducts($offset=0,$limit=100,$options=false){
 
-			$endpoint = self::API_BASE_URL."catalog/products?limit={$limit}&offset={$offset}&getExtendedFields=true";
+			$endpoint = $this->API_BASE_URL."catalog/products?limit={$limit}&offset={$offset}&getExtendedFields=true";
 
 			$headers = $this->getBaseHeaderArrayForStoreRequest();
 
@@ -327,7 +336,7 @@
 		public function getStoreCategories(){
 
 			// get individual group info (cards)
-			$endpoint = self::API_BASE_URL."store/inventory/categories";
+			$endpoint = $this->API_BASE_URL."store/inventory/categories";
 
 			$headers = $this->getBaseHeaderArrayForStoreRequest();
 			$data = array();
@@ -344,12 +353,11 @@
 		 *
 		 * @param $skuID
 		 * @param $price
-		 * @return mixed
 		 */
 		public function updateSKUPrice( $skuID , $price ){
 			//PUT /store/inventory/skus
 
-			$endpoint = self::API_BASE_URL."store/inventory/skus";
+			$endpoint = $this->API_BASE_URL."store/inventory/skus";
 			$headers = $this->getBaseHeaderArrayForStoreRequest();
 			$data = array(
 				'SkuId' => (int) $skuID,
@@ -380,7 +388,7 @@
 		public function getStoreInventory( $categoryId=1, $offset=0, $limit=10 ){
 			// /store/inventory/products?categoryId=1
 			// get individual group info (cards)
-			$endpoint = self::API_BASE_URL."store/inventory/products?categoryId=" . ( (int) $categoryId)."&limit=" . ( (int) $limit)."&offset=" . ( (int) $offset);
+			$endpoint = $this->API_BASE_URL."store/inventory/products?categoryId=" . ( (int) $categoryId)."&limit=" . ( (int) $limit)."&offset=" . ( (int) $offset);
 
 			$headers = $this->getBaseHeaderArrayForStoreRequest();
 			$data = array();
@@ -404,7 +412,7 @@
 		 * @param STRING $error
 		 */
 		private function emailAdmin($error){
-  
+
 			//$email = new \PFF\Email($error,"Error with TCGplayer API: ".date('r'),$_ENV['SUPPORT_EMAIL']);
 
 		}
